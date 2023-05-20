@@ -5,7 +5,9 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
+
+	"filesrv/internal/dirs"
+	"filesrv/internal/fhttp"
 )
 
 // dieOnErr logs the error and exits if it is not nil.
@@ -17,10 +19,14 @@ func dieOneErr(err error) {
 
 func Serve() {
 	// Configure.
-	h := http.FileServer(http.FS(os.DirFS(".")))
+	h := http.Handler(
+		&dirs.Dirs{
+			Handler: http.FileServer(http.Dir(".")),
+		},
+	)
 
 	// Wrap.
-	h = withMiddlewares(h, withLog)
+	h = fhttp.Wrap(h, withLog)
 
 	// Listen.
 	const port = "6060"
