@@ -11,7 +11,7 @@ import (
 )
 
 // dieOnErr logs the error and exits if it is not nil.
-func dieOneErr(err error) {
+func dieOnErr(err error) {
 	if err != nil {
 		log.Fatalf("error: %s", err)
 	}
@@ -19,9 +19,11 @@ func dieOneErr(err error) {
 
 func Serve() {
 	// Configure.
+	fsys := http.Dir(".")
 	h := http.Handler(
 		&dirs.Dirs{
-			Handler: http.FileServer(http.Dir(".")),
+			Handler:    http.FileServer(fsys),
+			FileSystem: fsys,
 		},
 	)
 
@@ -32,10 +34,10 @@ func Serve() {
 	const port = "6060"
 
 	ln, err := net.Listen("tcp", ":"+port)
-	dieOneErr(err)
+	dieOnErr(err)
 
 	err = printListenAddrs(port)
-	dieOneErr(err)
+	dieOnErr(err)
 
 	// Serve.
 	err = http.Serve(ln, h)
