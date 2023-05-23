@@ -5,13 +5,11 @@ import (
 	"errors"
 	"html/template"
 	"io/fs"
-	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/c2h5oh/datasize"
-	"golang.org/x/exp/slices"
 )
 
 //go:embed html/* css/* assets/*
@@ -58,65 +56,35 @@ func (h *Dirs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !h.respond(w, r.URL.Path) {
+	if !h.respond(w, r) {
 		h.Handler.ServeHTTP(w, r)
 	}
 }
 
-func (h *Dirs) respond(w http.ResponseWriter, path string) (handled bool) {
-	if !strings.HasSuffix(path, "/") {
+func (h *Dirs) respond(w http.ResponseWriter, r *http.Request) (handled bool) {
+	if !strings.HasSuffix(r.URL.Path, "/") {
 		return false
 	}
 
-	f, err := h.Open(path)
-	if err != nil {
-		log.Printf("dirs: %s", err)
+	switch r.Method {
+	case http.MethodPost:
+		if r.URL.Query().Has("upload") {
+			err := h.handleUpload(r)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 
-		return false
-	}
-	defer f.Close()
-
-	fi, err := f.Stat()
-	if err != nil {
-		log.Printf("dirs: %s", err)
-
-		return false
-	} else if !fi.IsDir() {
-		return false
-	}
-
-	entries, err := f.Readdir(-1)
-	if err != nil {
-		log.Printf("dirs: %s", err)
-
-		return false
-	}
-
-	slices.SortFunc(entries, func(i, j fs.FileInfo) bool {
-		if i.IsDir() {
-			if j.IsDir() {
-				return i.Name() < j.Name()
+				return true
 			}
 
+			http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
+
 			return true
-		} else if j.IsDir() {
-			return false
 		}
+	case http.MethodGet:
+		h.handleDir(w, r)
 
-		return i.Name() < j.Name()
-	})
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = t.Lookup("dir.gohtml").Execute(w, struct {
-		Path    string
-		Entries []fs.FileInfo
-	}{
-		Path:    path,
-		Entries: entries,
-	})
-	if err != nil {
-		log.Printf("dirs: executing template: %s", err)
+		return true
 	}
 
-	return true
+	return false
 }

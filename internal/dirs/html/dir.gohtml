@@ -11,46 +11,49 @@
     <head></head>
 
     <body>
-        <table id="list_table">
-            <thead>
-                <tr>
-                    <th>{{.Path}}</th>
-                </tr>
-            </thead>
-            <tbody>{{range $ent := .Entries}}
-                <tr>
-                    <th>{{if $ent.IsDir}}
-                        <a class="file dir" href="{{$ent.Name}}/"></a>📁 {{else}}
-                        <a class="file" href="{{$ent.Name}}"></a>📄 {{end}}{{$ent.Name}}
-                    </th>
-                </tr>{{end}}
-                <tr>
-                    <th>
-                        <form enctype="multipart/form-data" action="{{.Path}}?upload" method="post">
-                            <input type="file" name="upload_file" />
-                            <input type="submit" value="upload" />
-                        </form>
-                        ➕ Upload
-                    </th>
-                </tr>
-            </tbody>
-        </table>
+        <div id="scroller">
+            <table class="files">
+                <thead>
+                    <tr>
+                        <th>{{.Path}}</th>
+                    </tr>
+                </thead>
+                <tbody>{{range $ent := .Entries}}
+                    <tr>
+                        <th>{{if $ent.IsDir}}
+                            <a class="file dir" href="{{$ent.Name}}/">📁 {{$ent.Name}}</a>{{else}}
+                            <a class="file" href="{{$ent.Name}}">📄 {{$ent.Name}}</a>{{end}}
+                        </th>
+                    </tr>{{end}}
+                    <tr>
+                        <th>
+                            <form enctype="multipart/form-data" action="{{.Path}}?upload" method="post">
+                                <label class="file custom-file-uploader" for="file-uploader">➕ Add&nbsp
+                                <input id="file-uploader" type="file" name="upload_file" required />
+                                </label>
+                                <input type="submit" value="upload" />
+                            </form>
+                        </th>
+                    </tr>
+                </tbody>
+            </table>
 
-        <table id="data_table">
-            <thead>
-                <tr>
-                    <td>Mode</td>
-                    <td>Size</td>
-                    <td>Last Modified</td>
-                </tr>
-            </thead>
-            <tbody>{{range $ent := .Entries}}
-                <tr>
-                    <td>{{formatMode $ent.Mode}}</td>
-                    <td>{{if not $ent.IsDir}}{{formatSize $ent.Size}}{{end}}</td>
-                    <td>{{formatTime $ent.ModTime}}</td>
-                </tr>{{end}}
-            </tbody>
-        </table>
+            <table class="info">
+                <thead>
+                    <tr>
+                        <td>Mode</td>
+                        <td>Size</td>
+                        <td>Last Modified</td>
+                    </tr>
+                </thead>
+                <tbody>{{range $ent := .Entries}}
+                    <tr>
+                        <td>{{formatMode $ent.Mode}}</td>
+                        <td>{{if not $ent.IsDir}}{{formatSize $ent.Size}}{{end}}</td>
+                        <td>{{formatTime $ent.ModTime}}</td>
+                    </tr>{{end}}
+                </tbody>
+            </table>
+        </div>
     </body>
 </html>

@@ -9,47 +9,82 @@
     src: url("../assets/unispace_bd.otf") format("opentype");
 }
 
-/* All elements */
 * {
     margin: 0;
     padding: 0;
 
     box-sizing: border-box;
     font-family: unispace;
-    font-size: 24px;
-    white-space: nowrap;
+    font-size: 12px;
 }
 
-/* Document */
-html, body {
+html {
+    width: 100vw;
+    height: 100vh;
+}
+
+body {
     width: 100%;
+    height: 100%;
 }
 
-list_table {
-    width: 33%;
+#scroller {
+    width: 100%;
+    height: 100%;
+    overflow: scroll;
+    display: flex;
+}
+
+table {
+    border-collapse: collapse;
+    white-space: nowrap;
+    height: fit-content;
+}
+
+table.files {
+    position: sticky;
+    flex: content;
+    left: 0;
+    z-index: 1;
+    
+    text-align: left;
+}
+
+table.files thead {
     position: sticky;
     top: 0;
     left: 0;
+    z-index: 1;
+
+    color: white;
+    background-color: rgba(76,76,76,1);
 }
 
-/* Table */
-list_table {
+table.files tbody {
+    backdrop-filter: blur(10px);
+}
+
+table.files .file {
+    display: flex;
     width: 100%;
-    text-align: left;
-
-    border-collapse: collapse;
-}
-
-/* Any cell */
-th, td {
+    height: 100%;
+    
     padding: .5rem;
+    align-items: center;
 }
 
-/* Table header */
-thead {
+table.files .dir {
+    background-color: rgba(0,0,0,.1);
+}
+
+table.info {
+    flex: content;
+    text-align: left;
+}
+
+table.info thead {
     position: sticky;
     top: 0;
-    z-index: 2;
 
     font-weight: bold;
     color: white;
@@ -57,33 +92,37 @@ thead {
     backdrop-filter: blur(10px);
 }
 
-/* First column cells */
-tbody th {
-    position: sticky;
-    left: 0;
-
-    backdrop-filter: blur(10px);
-    z-index: 1;
+td, table.info th, table.files thead th {
+    padding: .5rem;
 }
 
-/* First cell */
-thead th {
-    position: sticky;
-    top: 0;
-    left: 0;
-    z-index: 3;
-
-    background-color: rgba(76,76,76,1);
+td, th {
+    height: 3rem;
 }
 
-.file {
-    position: fixed;
+#file-uploader {
+    cursor: pointer;
+}
+
+#file-uploader::file-selector-button {
+    display: none;
+}
+
+#file-uploader::placeholder {
+    font-weight: bold;
+}
+
+.custom-file-uploader {
+    cursor: pointer;
+}
+
+form {
+    display: flex;
     width: 100%;
     height: 100%;
-    top: 0;
-    left: 0;
 }
 
-.dir {
-    background-color: rgba(0,0,0,.1);
+input[type="submit"] {
+    width: 50%;
+    padding: .5rem;
 }
