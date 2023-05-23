@@ -4,7 +4,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <link href="/css/dir.css" rel="stylesheet">
+    <link href="/css/doc.css" rel="stylesheet">
+    <link href="/css/files.css" rel="stylesheet">
+    <link href="/css/info.css" rel="stylesheet">
 
     <title>{{printf "%q" .Path}}</title>
 
@@ -20,18 +22,22 @@
                 </thead>
                 <tbody>{{range $ent := .Entries}}
                     <tr>
-                        <th>{{if $ent.IsDir}}
-                            <a class="file dir" href="{{$ent.Name}}/">📁 {{$ent.Name}}</a>{{else}}
-                            <a class="file" href="{{$ent.Name}}">📄 {{$ent.Name}}</a>{{end}}
+                        <th title="{{$ent.Name}}">{{if $ent.IsDir}}
+                            <a class="file dir" href="{{$ent.Name}}/">
+                                <span class="filename">📁 {{$ent.Name}}</span>
+                            </a>{{else}}
+                            <a class="file" href="{{$ent.Name}}">
+                                <span class="filename">📄 {{$ent.Name}}</span>
+                            </a>{{end}}
                         </th>
                     </tr>{{end}}
                     <tr>
                         <th>
-                            <form enctype="multipart/form-data" action="{{.Path}}?upload" method="post">
-                                <label class="file custom-file-uploader" for="file-uploader">➕ Add&nbsp
-                                <input id="file-uploader" type="file" name="upload_file" required />
+                            <form id="file-upload" enctype="multipart/form-data" action="{{.Path}}?upload" method="post">
+                                <label id="custom-uploader" class="file" for="uploader">
+                                    ➕&nbsp<input id="uploader" type="file" name="upload_file" required />
                                 </label>
-                                <input type="submit" value="upload" />
+                                <input type="submit" value="Upload" />
                             </form>
                         </th>
                     </tr>
@@ -41,9 +47,9 @@
             <table class="info">
                 <thead>
                     <tr>
-                        <td>Mode</td>
-                        <td>Size</td>
-                        <td>Last Modified</td>
+                        <th>Mode</th>
+                        <th>Size</th>
+                        <th>Last Modified</th>
                     </tr>
                 </thead>
                 <tbody>{{range $ent := .Entries}}

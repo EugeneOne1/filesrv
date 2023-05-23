@@ -1,0 +1,56 @@
+@font-face {
+    font-family: unispace;
+    font-weight: normal;
+    src: url("../assets/unispace_rg.otf") format("opentype");
+}
+
+@font-face {
+    font-family: unispace;
+    font-weight: bold;
+    src: url("../assets/unispace_bd.otf") format("opentype");
+}
+
+* {
+    margin: 0;
+    padding: 0;
+
+    box-sizing: border-box;
+    font-family: unispace;
+    font-size: 12px;
+
+    text-overflow: ellipsis;
+}
+
+html {
+    width: 100vw;
+    height: 100vh;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+}
+
+#scroller {
+    width: 100%;
+    height: 100%;
+    overflow: scroll;
+    display: flex;
+}
+
+table {
+    border-collapse: collapse;
+    white-space: nowrap;
+    height: fit-content;
+}
+
+td,
+table thead th {
+    padding: .5rem;
+}
+
+td,
+th {
+    overflow: hidden;
+    height: 3rem;
+}

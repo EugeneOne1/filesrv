@@ -1,0 +1,73 @@
+table.files {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    min-width: 50%;
+    width: 50%;
+
+    table-layout: fixed;
+    text-align: left;
+}
+
+table.files thead {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 1;
+
+    color: white;
+    background-color: rgba(76, 76, 76, 1);
+}
+
+table.files tbody {
+    backdrop-filter: blur(10px);
+}
+
+table.files tbody th .file {
+    display: flex;
+    height: 100%;
+    width: 100%;
+
+    padding: .5rem;
+    align-items: center;
+
+    background-color: rgba(0, 0, 0, .1);
+}
+
+table.files tbody th a.file {
+    color: black;
+    text-decoration: none;
+}
+
+table.files tbody th .dir {
+    background-color: rgba(0, 0, 0, .2);
+}
+
+table.files tbody th .file .filename {
+    overflow: hidden;
+}
+
+table.files tbody th form#file-upload {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+table.files tbody th form#file-upload #custom-uploader {
+    cursor: pointer;
+
+    min-width: 50%;
+}
+
+table.files tbody th form#file-upload #custom-uploader #uploader::file-selector-button {
+    display: none;
+}
+
+table.files tbody th form#file-upload input[type="submit"] {
+    padding: .5rem;
+    width: 50%;
+
+    border: 0;
+
+    background-color: rgba(0, 0, 0, 0.2);
+}

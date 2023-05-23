@@ -11,7 +11,7 @@ import (
 	"github.com/c2h5oh/datasize"
 )
 
-const maxFileSize = int64(datasize.GB)
+const maxFileSize = int64(4 * datasize.GB)
 
 func (h *Dirs) handleUpload(r *http.Request) (err error) {
 	r.ParseMultipartForm(maxFileSize)
