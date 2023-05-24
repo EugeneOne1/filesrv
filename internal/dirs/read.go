@@ -46,6 +46,8 @@ func (h *Dirs) handleDir(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// read reads the directory named by path and returns a list of directory
+// entries.
 func (h *Dirs) read(path string) (entries []fs.FileInfo, err error) {
 	f, err := h.Open(path)
 	if err != nil {

@@ -14,8 +14,11 @@ import (
 
 //go:embed html/* css/* assets/*
 var static embed.FS
+
+// staticServer serves front-end resources from [static].
 var staticServer http.Handler
 
+// t is the template used to render directory listings.
 var t *template.Template = template.New(".")
 
 func init() {
@@ -44,23 +47,31 @@ func init() {
 	staticServer = http.StripPrefix("/", http.FileServer(http.FS(static)))
 }
 
+// Dirs is a proxy for http.FileServer that handles directory listings and file
+// uploads.
 type Dirs struct {
 	http.Handler
 	http.FileSystem
 }
 
+// ServeHTTP implements the [http.Handler] interface for *Dirs.
 func (h *Dirs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if _, err := fs.Stat(static, strings.TrimPrefix(r.URL.Path, "/")); err == nil {
+		// Serve static files.
 		staticServer.ServeHTTP(w, r)
 
 		return
 	}
 
 	if !h.respond(w, r) {
+		// Handle the request with default Handler.
 		h.Handler.ServeHTTP(w, r)
 	}
 }
 
+// respond tries to handle the request and returns true if the request was
+// handled.  It only handles the requests for directory listings and uploading
+// the files.
 func (h *Dirs) respond(w http.ResponseWriter, r *http.Request) (handled bool) {
 	if !strings.HasSuffix(r.URL.Path, "/") {
 		return false
