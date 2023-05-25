@@ -12,11 +12,14 @@ import (
 	"github.com/c2h5oh/datasize"
 )
 
-//go:embed html/* css/* assets/*
+//go:embed css/* assets/*
 var static embed.FS
 
 // staticServer serves front-end resources from [static].
 var staticServer http.Handler
+
+//go:embed html/*
+var templ embed.FS
 
 // t is the template used to render directory listings.
 var t *template.Template = template.New(".")
@@ -40,7 +43,7 @@ func init() {
 	})
 
 	var err error
-	if t, err = t.ParseFS(static, "html/dir.gohtml"); err != nil {
+	if t, err = t.ParseFS(templ, "html/dir.gohtml"); err != nil {
 		panic(err)
 	}
 
@@ -92,7 +95,16 @@ func (h *Dirs) respond(w http.ResponseWriter, r *http.Request) (handled bool) {
 			return true
 		}
 	case http.MethodGet:
-		h.handleDir(w, r)
+		err := h.handleDir(w, r)
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				return false
+			}
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+
+			return true
+		}
 
 		return true
 	}

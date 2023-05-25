@@ -45,12 +45,15 @@ table {
 }
 
 td,
-table thead th {
+table.info thead th {
     padding: .5rem;
 }
 
 td,
 th {
-    overflow: hidden;
     height: 3rem;
+}
+
+a {
+    text-decoration: none;
 }

@@ -1,22 +1,24 @@
 package dirs
 
 import (
-	"errors"
+	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
+	"path"
+	"strings"
+
+	"filesrv/internal/errors"
 
 	"golang.org/x/exp/slices"
 )
 
-var ErrNotDir = errors.New("not a directory")
+var ErrNotDir = errors.Error("not a directory")
 
-func (h *Dirs) handleDir(w http.ResponseWriter, r *http.Request) {
+// handleDir reads the directory and marshals the entries via the template.
+func (h *Dirs) handleDir(w http.ResponseWriter, r *http.Request) (err error) {
 	entries, err := h.read(r.URL.Path)
 	if err != nil {
-		log.Printf("dirs: %s", err)
-
-		return
+		return fmt.Errorf("reading directory: %w", err)
 	}
 
 	slices.SortFunc(entries, func(i, j fs.FileInfo) bool {
@@ -33,17 +35,40 @@ func (h *Dirs) handleDir(w http.ResponseWriter, r *http.Request) {
 		return i.Name() < j.Name()
 	})
 
+	err = renderPage(w, r, entries)
+	if err != nil {
+		return fmt.Errorf("rendering page: %w", err)
+	}
+
+	return nil
+}
+
+func renderPage(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) (err error) {
+	p := strings.TrimSuffix(r.URL.Path, "/")
+	parentDir, currentDir := path.Split(p)
+	if currentDir == "" {
+		parentDir, currentDir = "", parentDir
+	} else {
+		parentDir = strings.TrimSuffix(parentDir, "/")
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = t.Lookup("dir.gohtml").Execute(w, struct {
-		Path    string
-		Entries []fs.FileInfo
+		ParentDir  string
+		CurrentDir string
+		Path       string
+		Entries    []fs.FileInfo
 	}{
-		Path:    r.URL.Path,
-		Entries: entries,
+		ParentDir:  parentDir,
+		CurrentDir: currentDir,
+		Path:       r.URL.Path,
+		Entries:    entries,
 	})
 	if err != nil {
-		log.Printf("dirs: executing template: %s", err)
+		return fmt.Errorf("executing template: %w", err)
 	}
+
+	return nil
 }
 
 // read reads the directory named by path and returns a list of directory
@@ -59,7 +84,7 @@ func (h *Dirs) read(path string) (entries []fs.FileInfo, err error) {
 	if err != nil {
 		return nil, err
 	} else if !fi.IsDir() {
-		return nil, ErrNotDir
+		return nil, fs.ErrNotExist
 	}
 
 	entries, err = f.Readdir(-1)
