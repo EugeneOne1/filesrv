@@ -14,6 +14,25 @@ table.info thead {
     backdrop-filter: blur(10px);
 }
 
+table.info thead tr th.sortable {
+    padding: 0;
+}
+
+table.info thead tr th:hover a {
+    background-color: rgba(0, 34, 255, .35);
+}
+
+table.info thead tr th a {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    padding: .5rem;
+
+    align-items: center;
+    
+    color:  white;
+}
+
 table.info tbody tr td {
     font-size: .7rem;
 }

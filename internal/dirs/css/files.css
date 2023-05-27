@@ -80,6 +80,10 @@ table.files tbody th .file {
     background-color: rgba(0, 34, 255, .1);
 }
 
+table.files tbody th:hover .file {
+    background-color: rgba(0, 34, 255, .05);
+}
+
 table.files .filename {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -91,6 +95,10 @@ table.files tbody th a.file {
 
 table.files tbody th .dir {
     background-color: rgba(0, 34, 255, .2);
+}
+
+table.files tbody th:hover .dir {
+    background-color: rgba(0, 34, 255, .15);
 }
 
 table.files tbody th form#file-upload {
@@ -107,6 +115,16 @@ table.files tbody th form#file-upload #upload_submit {
     cursor: pointer;
 
     background-color: rgba(0, 34, 255, .2);
+}
+
+table.files tbody th form#file-upload #upload_submit:hover {
+    padding: .5rem;
+    width: 50%;
+
+    border: 0;
+    cursor: pointer;
+
+    background-color: rgba(0, 34, 255, .05);
 }
 
 table.files tbody th form#file-upload #custom-uploader {

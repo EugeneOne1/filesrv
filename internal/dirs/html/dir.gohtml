@@ -53,10 +53,26 @@
 
             <table class="info">
                 <thead>
-                    <tr>
+                    <tr>{{ $sort := .Params.Get "sortBy" }}
                         <th>Mode</th>
-                        <th>Size</th>
-                        <th>Last Modified</th>
+                        <th class="sortable" title="Sort by size">
+                            <a href="{{.Path}}?sortBy={{ if eq $sort "size" }}size_desc{{else}}size{{end}}">
+                                <span>{{ if eq $sort "size" }}
+                                    📈 Size{{ else if eq $sort "size_desc" }}
+                                    📉 Size{{ else }}
+                                    Size{{ end }}
+                                </span>
+                            </a>
+                        </th>
+                        <th class="sortable" title="Sort by modification time">
+                            <a href="{{.Path}}?sortBy={{ if eq $sort "time" }}time_desc{{else}}time{{end}}">
+                                <span>{{ if eq $sort "time" }}
+                                    📈 Last Modified{{ else if eq $sort "time_desc" }}
+                                    📉 Last Modified{{ else }}
+                                    Last Modified{{ end }}
+                                </span>
+                            </a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>{{range $ent := .Entries}}
