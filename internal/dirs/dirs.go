@@ -5,6 +5,7 @@ import (
 	"errors"
 	"html/template"
 	"io/fs"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -101,7 +102,8 @@ func (h *Dirs) respond(w http.ResponseWriter, r *http.Request) (handled bool) {
 				return false
 			}
 
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("error handling directory: %v", err)
+			// http.Error(w, err.Error(), http.StatusInternalServerError)
 
 			return true
 		}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
-	"path"
 	"strings"
 
 	"filesrv/internal/errors"
@@ -43,24 +42,37 @@ func (h *Dirs) handleDir(w http.ResponseWriter, r *http.Request) (err error) {
 	return nil
 }
 
+type pathPart struct {
+	Dir  string
+	Path string
+}
+
 func renderPage(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) (err error) {
-	p := strings.TrimSuffix(r.URL.Path, "/")
-	parentDir, currentDir := path.Split(p)
-	if currentDir == "" {
-		parentDir, currentDir = "", parentDir
-	} else {
-		parentDir = strings.TrimSuffix(parentDir, "/")
+	dirs := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
+	parts := make([]pathPart, 0, len(dirs))
+
+	var current string
+	for i := range dirs {
+		parts = append(parts, pathPart{
+			Dir:  dirs[i] + "/",
+			Path: strings.Join(dirs[:i+1], "/") + "/",
+		})
+		current = parts[i].Dir
+	}
+
+	for i, j := 0, len(parts)-1; i < j; i, j = i+1, j-1 {
+		parts[i], parts[j] = parts[j], parts[i]
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	err = t.Lookup("dir.gohtml").Execute(w, struct {
-		ParentDir  string
 		CurrentDir string
+		PathParts  []pathPart
 		Path       string
 		Entries    []fs.FileInfo
 	}{
-		ParentDir:  parentDir,
-		CurrentDir: currentDir,
+		CurrentDir: current,
+		PathParts:  parts,
 		Path:       r.URL.Path,
 		Entries:    entries,
 	})

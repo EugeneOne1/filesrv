@@ -23,6 +23,7 @@ table.files thead {
 
 table.files thead tr th #path {
     display: flex;
+    flex-direction: row-reverse;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -43,14 +44,18 @@ table.files thead tr th a:hover {
     color: rgba(255, 255, 255, 1);
 }
 
+table.files thead tr th a:hover ~ a {
+    color: rgba(255, 255, 255, 1);
+}
+
 table.files thead tr th a:first-child {
-    padding-left: .5rem;
-    min-width: 3rem;
+    padding-right: .5rem;
+    flex-grow: 1;
+    /* min-width: min(fit-content, 3rem) */
 }
 
 table.files thead tr th a:last-child {
-    padding-right: .5rem;
-    flex-grow: 1;
+    padding-left: .5rem;
 }
 
 /* Files list itself */
