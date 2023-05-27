@@ -10,7 +10,7 @@ table.info thead {
 
     font-weight: bold;
     color: white;
-    background-color: rgba(0, 103, 182, 0.4);
+    background-color: rgba(0, 34, 255, .3);
     backdrop-filter: blur(10px);
 }
 
