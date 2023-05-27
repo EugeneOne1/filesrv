@@ -21,6 +21,7 @@
                             <div id="path">{{range $part := .PathParts}}
                                 <a href="{{$part.Path}}" title="{{$part.Path}}">
                                     <span class="filename">{{$part.Dir}}</span>
+                                    <span>/</span>
                                 </a>{{end}}
                             </div>
                         </th>

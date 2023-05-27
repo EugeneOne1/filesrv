@@ -1,13 +1,49 @@
 @font-face {
     font-family: unispace;
     font-weight: normal;
-    src: url("../assets/unispace_rg.otf") format("opentype");
+    src: url("../assets/unispace/unispace_rg.otf") format("opentype");
 }
 
 @font-face {
     font-family: unispace;
     font-weight: bold;
-    src: url("../assets/unispace_bd.otf") format("opentype");
+    src: url("../assets/unispace/unispace_bd.otf") format("opentype");
+}
+
+@font-face {
+    font-family: camingocode;
+    font-weight: normal;
+    src: url("../assets/camingocode/CamingoCode-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: camingocode;
+    font-weight: bold;
+    src: url("../assets/camingocode/CamingoCode-Bold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: cousine;
+    font-weight: normal;
+    src: url("../assets/cousine/Cousine-Regular.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: cousine;
+    font-weight: bold;
+    src: url("../assets/cousine/Cousine-Bold.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: firacode;
+    font-weight: normal;
+    src: url("../assets/fira-code/FiraCode-Regular.otf") format("opentype");
+}
+
+@font-face {
+    font-family: firacode;
+    font-weight: bold;
+    src: url("../assets/fira-code/FiraCode-Bold.otf") format("opentype");
 }
 
 * {
@@ -15,10 +51,8 @@
     padding: 0;
 
     box-sizing: border-box;
-    font-family: unispace;
-    font-size: 12px;
-
-    text-overflow: ellipsis;
+    font-family: firacode;
+    font-size: 18px;
 }
 
 html {

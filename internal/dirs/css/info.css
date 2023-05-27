@@ -10,6 +10,10 @@ table.info thead {
 
     font-weight: bold;
     color: white;
-    background-color: rgba(0, 0, 0, .3);
+    background-color: rgba(0, 103, 182, 0.4);
     backdrop-filter: blur(10px);
+}
+
+table.info tbody tr td {
+    font-size: .7rem;
 }

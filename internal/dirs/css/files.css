@@ -18,7 +18,7 @@ table.files thead {
     z-index: 1;
 
     color: rgba(255, 255, 255, 1);
-    background-color: rgba(76, 76, 76, 1);
+    background-color: rgba(0, 102, 181, 1);
 }
 
 table.files thead tr th #path {
@@ -37,6 +37,8 @@ table.files thead tr th a {
     padding-top: .5rem;
     padding-bottom: .5rem;
 
+    /* min-width: 1rem; */
+
     color: rgba(255, 255, 255, .7);
 }
 
@@ -51,7 +53,10 @@ table.files thead tr th a:hover ~ a {
 table.files thead tr th a:first-child {
     padding-right: .5rem;
     flex-grow: 1;
-    /* min-width: min(fit-content, 3rem) */
+}
+
+table.files thead tr th a:not(:first-child):not(:last-child) {
+    min-width: 2rem;
 }
 
 table.files thead tr th a:last-child {
@@ -72,11 +77,12 @@ table.files tbody th .file {
     padding: .5rem;
     align-items: center;
 
-    background-color: rgba(0, 0, 0, .1);
+    background-color: rgba(48, 165, 255, .1);
 }
 
 table.files .filename {
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 table.files tbody th a.file {
@@ -84,7 +90,7 @@ table.files tbody th a.file {
 }
 
 table.files tbody th .dir {
-    background-color: rgba(0, 0, 0, .2);
+    background-color: rgba(48, 165, 255, .2);
 }
 
 table.files tbody th form#file-upload {
@@ -100,7 +106,7 @@ table.files tbody th form#file-upload #upload_submit {
     border: 0;
     cursor: pointer;
 
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(48, 165, 255, 0.2);
 }
 
 table.files tbody th form#file-upload #custom-uploader {

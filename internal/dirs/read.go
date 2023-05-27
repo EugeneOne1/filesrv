@@ -51,10 +51,10 @@ func renderPage(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) (
 	dirs := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
 	parts := make([]pathPart, 0, len(dirs))
 
-	var current string
+	current := "/"
 	for i := range dirs {
 		parts = append(parts, pathPart{
-			Dir:  dirs[i] + "/",
+			Dir:  dirs[i],
 			Path: strings.Join(dirs[:i+1], "/") + "/",
 		})
 		current = parts[i].Dir
