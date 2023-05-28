@@ -1,9 +1,13 @@
 table.files {
     position: sticky;
+    top: 0;
     left: 0;
+
+    flex-grow: 0;
     z-index: 1;
-    min-width: 50%;
-    width: 50%;
+    min-width: 15rem;
+    max-width: 50%;
+    width: fit-content;
 
     table-layout: fixed;
     text-align: left;
@@ -16,9 +20,15 @@ table.files thead {
     top: 0;
     left: 0;
     z-index: 1;
+    
+    width: 100%;
 
     color: rgba(255, 255, 255, 1);
     background-color: rgba(0, 102, 181, 1);
+}
+
+table.files thead tr {
+    width: 100%;
 }
 
 table.files thead tr th #path {
@@ -46,7 +56,7 @@ table.files thead tr th a:hover {
     color: rgba(255, 255, 255, 1);
 }
 
-table.files thead tr th a:hover ~ a {
+table.files thead tr th a:hover~a {
     color: rgba(255, 255, 255, 1);
 }
 
@@ -66,12 +76,15 @@ table.files thead tr th a:last-child {
 /* Files list itself */
 
 table.files tbody {
+    transform: translate3d(0, 0, 0);
+
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
 table.files tbody th .file {
     display: flex;
-    height: 100%;
+    height: 3rem;
     width: 100%;
 
     padding: .5rem;
@@ -107,11 +120,17 @@ table.files tbody th form#file-upload {
     height: 100%;
 }
 
+table.files tbody th form input {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
 table.files tbody th form#file-upload #upload_submit {
     padding: .5rem;
     width: 50%;
 
     border: 0;
+    border-radius: 0;
     cursor: pointer;
 
     background-color: rgba(0, 34, 255, .2);

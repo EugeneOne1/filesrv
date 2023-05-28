@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 )
 
 // printListenAddrs prints the addresses the server is listening on appending
@@ -17,6 +18,14 @@ func printListenAddrs(port string) (err error) {
 	}
 
 	fmt.Println("Listening on:")
+	hn, err := os.Hostname()
+	if err == nil {
+		fmt.Printf("\t%s\n", &url.URL{
+			Scheme: "http",
+			Host:   net.JoinHostPort(hn, port),
+		})
+	}
+
 	for _, addr := range addrs {
 		if n, ok := addr.(*net.IPNet); !ok {
 			continue
