@@ -23,12 +23,23 @@ func printListenAddrs(port string) (err error) {
 
 	fmt.Println("Available at:")
 
+	qrPrinted := false
+
 	for _, addr := range addrs {
 		if n, ok := addr.(*net.IPNet); !ok {
 			fmt.Printf("\t%s (not a net)\n", addr.String())
 
 			continue
 		} else {
+			if !qrPrinted && n.IP.IsPrivate() {
+				printQR((&url.URL{
+					Scheme: "http",
+					Host:   net.JoinHostPort(n.IP.String(), port),
+				}).String())
+
+				qrPrinted = true
+			}
+
 			fmt.Printf("\t%s\n", &url.URL{
 				Scheme: "http",
 				Host:   net.JoinHostPort(n.IP.String(), port),
@@ -36,26 +47,30 @@ func printListenAddrs(port string) (err error) {
 		}
 	}
 
-	hn, err := os.Hostname()
-	if err != nil {
-		// This error is not critical?
-		log.Printf("getting hostname: %s", err)
+	if !qrPrinted {
+		hn, err := os.Hostname()
+		if err != nil {
+			// This error is not critical?
+			log.Printf("getting hostname: %s", err)
 
-		return nil
+			return nil
+		}
+
+		printQR((&url.URL{
+			Scheme: "http",
+			Host:   net.JoinHostPort(hn, port),
+		}).String())
 	}
 
-	u := &url.URL{
-		Scheme: "http",
-		Host:   net.JoinHostPort(hn, port),
-	}
+	return nil
+}
 
+func printQR(content string) {
 	fmt.Println("Try also:")
 	qrcodeTerminal.New2(
 		qrcodeTerminal.ConsoleColors.BrightBlack,
 		qrcodeTerminal.ConsoleColors.BrightWhite,
 		qrcodeTerminal.QRCodeRecoveryLevels.Low,
-	).Get(u.String()).Print()
-	fmt.Printf("\t%s\n", u)
-
-	return nil
+	).Get(content).Print()
+	fmt.Printf("\t%s\n", content)
 }

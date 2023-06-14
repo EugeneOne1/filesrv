@@ -19,7 +19,7 @@ const maxFileSize = int64(4 * datasize.GB)
 
 // handleUpload handles the upload of a multipart file from r.  It uses the
 // URL's path as the directory for storing the file.
-func (h *Dirs) handleUpload(r *http.Request) (err error) {
+func (h *dirs) handleUpload(r *http.Request) (err error) {
 	r.ParseMultipartForm(maxFileSize)
 
 	// Get handler for filename, size and headers
@@ -61,15 +61,7 @@ func saveFile(file multipart.File, handler *multipart.FileHeader, to string) (er
 	if err != nil {
 		return err
 	}
-	defer renameOrDelete(&err, f.Name(), fname)
-
-	defer func() {
-		// It's required on Windows to close the file before renaming it.
-		closeErr := f.Close()
-		if closeErr != nil {
-			err = errors.Join(err, closeErr)
-		}
-	}()
+	defer closeAndRename(&err, f, fname)
 
 	written, err := io.Copy(f, file)
 	if err != nil {
@@ -81,17 +73,23 @@ func saveFile(file multipart.File, handler *multipart.FileHeader, to string) (er
 	return nil
 }
 
-// renameOrDelete renames the temporary file to the final name if the caller
+// closeAndRename renames the temporary file f to the final name if the caller
 // succeeded.  Otherwise, it deletes the temporary file.  In both cases, it
-// adds the own error to the caller's error.
-func renameOrDelete(callerErr *error, tmpName, name string) {
-	var err error
+// adds the own error to the caller's error.  Note that it closes the file even
+// if the caller failed.  callerErr must not be nil (*callerErr could).
+func closeAndRename(callerErr *error, f *os.File, finalName string) {
+	// It's required on Windows to close the file before renaming it.
+	err := f.Close()
+	if err != nil {
+		err = errors.Join(*callerErr, err)
+	}
+
 	var action string
-	if *callerErr != nil {
-		err = os.Remove(tmpName)
+	if err != nil {
+		err = errors.Join(os.Remove(f.Name()), err)
 		action = "removing temporary file"
-	} else if name != "" {
-		switch _, err = os.Lstat(name); {
+	} else if finalName != "" {
+		switch _, err = os.Lstat(finalName); {
 		case err == nil:
 			// File exists, leave the name as is.
 		case !errors.Is(err, os.ErrNotExist):
@@ -99,7 +97,7 @@ func renameOrDelete(callerErr *error, tmpName, name string) {
 			action = "checking file existence"
 		default:
 			// File doesn't exist, rename the temporary file.
-			err = os.Rename(tmpName, name)
+			err = os.Rename(f.Name(), finalName)
 			action = "renaming temporary file"
 		}
 	} else {
@@ -107,7 +105,6 @@ func renameOrDelete(callerErr *error, tmpName, name string) {
 	}
 
 	if err != nil {
-		err = fmt.Errorf("%s: %w", action, err)
-		*callerErr = errors.Join(*callerErr, err)
+		*callerErr = errors.Join(*callerErr, fmt.Errorf("%s: %w", action, err))
 	}
 }

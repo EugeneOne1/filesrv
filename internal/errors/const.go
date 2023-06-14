@@ -1,6 +1,6 @@
 package errors
 
-// Error is the [error] that may be constant.
-type Error string
+// Str is a string [error].  It should usually be defined constant.
+type Str string
 
-func (e Error) Error() string { return string(e) }
+func (e Str) Error() string { return string(e) }

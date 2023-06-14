@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"filesrv/internal/dirs"
+	"filesrv/internal/dirs/themes"
 	"filesrv/internal/fhttp"
 )
 
@@ -20,12 +21,11 @@ func dieOnErr(err error) {
 func Serve() {
 	// Configure.
 	fsys := http.Dir(".")
-	h := http.Handler(
-		&dirs.Dirs{
-			Handler:    http.FileServer(fsys),
-			FileSystem: fsys,
-		},
-	)
+	h, err := dirs.NewHTTPFSDirs(&dirs.HTTPFSConfig{
+		FS:    fsys,
+		Theme: themes.DefaultDynamic(),
+	})
+	dieOnErr(err)
 
 	// Wrap.
 	h = fhttp.Wrap(h, withLog)
