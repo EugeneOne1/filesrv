@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -92,23 +93,25 @@ func (t *defaultTheme) Render(w http.ResponseWriter, r *http.Request, entries []
 	return nil
 }
 
-func DefaultEmbedded() (theme dirs.Theme) {
-	t, err := template.New(".").Funcs(template.FuncMap{
-		"formatTime": func(t time.Time) string {
-			return t.Format(time.RFC1123)
-		},
-		"formatSize": func(size int64) string {
-			return datasize.ByteSize(size).HumanReadable()
-		},
-		"formatMode": func(fm fs.FileMode) (res string, err error) {
-			res = fm.String()
-			if len(res) == 0 {
-				return "", errors.New("invalid file mode")
-			}
+var funcMap = template.FuncMap{
+	"formatTime": func(t time.Time) string {
+		return t.Format(time.RFC1123)
+	},
+	"formatSize": func(size int64) string {
+		return datasize.ByteSize(size).HumanReadable()
+	},
+	"formatMode": func(fm fs.FileMode) (res string, err error) {
+		res = fm.String()
+		if len(res) == 0 {
+			return "", errors.New("invalid file mode")
+		}
 
-			return res[1:], nil
-		},
-	}).ParseFS(templ, "html/dir.gohtml")
+		return res[1:], nil
+	},
+}
+
+func DefaultEmbedded() (theme dirs.Theme) {
+	t, err := template.New(".").Funcs(funcMap).ParseFS(templ, "html/dir.gohtml")
 	if err != nil {
 		// This should never happen since the whole content is embedded.
 		panic(err)
@@ -131,22 +134,38 @@ func (t *defaultTheme) IsContentRequest(r *http.Request) (ok bool) {
 	return err == nil
 }
 
-type defaultDynamic struct{}
+type defaultDynamic struct {
+	defaultTheme
+}
 
-func DefaultDynamic() (theme dirs.Theme) {
-	return defaultDynamic{}
+func DefaultDynamic(path string) (theme dirs.Theme) {
+	ents, err := fs.Glob(os.DirFS(path), "*")
+	if err != nil {
+		panic(err)
+	}
+
+	log.Printf("entries: %v", ents)
+
+	return defaultDynamic{
+		defaultTheme: defaultTheme{
+			static:        os.DirFS(path),
+			staticHandler: http.StripPrefix("/", http.FileServer(http.FS(os.DirFS(path)))),
+		},
+	}
 }
 
 func (d defaultDynamic) Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) (err error) {
 	return (&defaultTheme{
-		templ: template.Must(template.New(".").ParseFS(templ, "html/dir.gohtml")),
+		templ:         template.Must(template.New(r.Host).Funcs(funcMap).ParseFS(d.static, "html/dir.gohtml")),
+		static:        d.static,
+		staticHandler: d.staticHandler,
 	}).Render(w, r, entries)
 }
 
 func (d defaultDynamic) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	(&defaultTheme{staticHandler: http.StripPrefix("/", http.FileServer(http.FS(os.DirFS("."))))}).ServeHTTP(w, r)
+	d.defaultTheme.ServeHTTP(w, r)
 }
 
 func (d defaultDynamic) IsContentRequest(r *http.Request) (ok bool) {
-	return (&defaultTheme{static: os.DirFS(".")}).IsContentRequest(r)
+	return d.defaultTheme.IsContentRequest(r)
 }

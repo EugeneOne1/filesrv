@@ -15,7 +15,7 @@ ENV = env\
 	VERSION='$(VERSION)'
 
 run: build
-	$(ENV) ./srv
+	$(ENV) ./srv -t=./internal/dirs/themes
 
 build: go-build
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"flag"
 	"log"
 	"net"
 	"net/http"
@@ -11,6 +12,12 @@ import (
 	"filesrv/internal/fhttp"
 )
 
+var options = struct {
+	themePath *string
+}{
+	themePath: flag.String("t", "", "path to the theme directory"),
+}
+
 // dieOnErr logs the error and exits if it is not nil.
 func dieOnErr(err error) {
 	if err != nil {
@@ -19,11 +26,19 @@ func dieOnErr(err error) {
 }
 
 func Serve() {
+	// Parse options.
+	flag.Parse()
+
+	theme := themes.DefaultEmbedded()
+	if p := *options.themePath; p != "" {
+		theme = themes.DefaultDynamic(p)
+	}
+
 	// Configure.
 	fsys := http.Dir(".")
 	h, err := dirs.NewHTTPFSDirs(&dirs.HTTPFSConfig{
 		FS:    fsys,
-		Theme: themes.DefaultDynamic(),
+		Theme: theme,
 	})
 	dieOnErr(err)
 
