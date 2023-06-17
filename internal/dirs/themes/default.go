@@ -2,7 +2,6 @@ package themes
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -101,12 +100,21 @@ var funcMap = template.FuncMap{
 		return datasize.ByteSize(size).HumanReadable()
 	},
 	"formatMode": func(fm fs.FileMode) (res string, err error) {
-		res = fm.String()
-		if len(res) == 0 {
-			return "", errors.New("invalid file mode")
+		buf := [12]byte{}
+		bi := 0
+		for i, c := range "rwxrwxrwx" {
+			if fm&(1<<uint(9-1-i)) != 0 {
+				buf[bi] = byte(c)
+			} else {
+				buf[bi] = '-'
+			}
+			if bi++; bi%3 == 0 && bi < len(buf) {
+				buf[bi] = '\n'
+				bi++
+			}
 		}
 
-		return res[1:], nil
+		return string(buf[:]), nil
 	},
 }
 
