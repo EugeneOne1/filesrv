@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -17,11 +15,8 @@ import (
 	"github.com/c2h5oh/datasize"
 )
 
-//go:embed css/* assets/*
+//go:embed css/* assets/* html/*
 var static embed.FS
-
-//go:embed html/*
-var templ embed.FS
 
 type defaultTheme struct {
 	templ         *template.Template
@@ -119,7 +114,7 @@ var funcMap = template.FuncMap{
 }
 
 func DefaultEmbedded() (theme dirs.Theme) {
-	t, err := template.New(".").Funcs(funcMap).ParseFS(templ, "html/dir.gohtml")
+	t, err := template.New(".").Funcs(funcMap).ParseFS(static, "html/dir.gohtml")
 	if err != nil {
 		// This should never happen since the whole content is embedded.
 		panic(err)
@@ -142,22 +137,20 @@ func (t *defaultTheme) IsContentRequest(r *http.Request) (ok bool) {
 	return err == nil
 }
 
+// String implements the [fmt.Stringer] interface for *defaultTheme.
+func (t *defaultTheme) String() string {
+	return fmt.Sprintf("Default[fs=%T]", t.static)
+}
+
 type defaultDynamic struct {
 	defaultTheme
 }
 
-func DefaultDynamic(path string) (theme dirs.Theme) {
-	ents, err := fs.Glob(os.DirFS(path), "*")
-	if err != nil {
-		panic(err)
-	}
-
-	log.Printf("entries: %v", ents)
-
-	return defaultDynamic{
+func DefaultDynamic(fsys fs.FS) (theme dirs.Theme) {
+	return &defaultDynamic{
 		defaultTheme: defaultTheme{
-			static:        os.DirFS(path),
-			staticHandler: http.StripPrefix("/", http.FileServer(http.FS(os.DirFS(path)))),
+			static:        fsys,
+			staticHandler: http.StripPrefix("/", http.FileServer(http.FS(fsys))),
 		},
 	}
 }
@@ -170,10 +163,7 @@ func (d defaultDynamic) Render(w http.ResponseWriter, r *http.Request, entries [
 	}).Render(w, r, entries)
 }
 
-func (d defaultDynamic) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	d.defaultTheme.ServeHTTP(w, r)
-}
-
-func (d defaultDynamic) IsContentRequest(r *http.Request) (ok bool) {
-	return d.defaultTheme.IsContentRequest(r)
+// String implements the [fmt.Stringer] interface for *defaultDynamic.
+func (d defaultDynamic) String() string {
+	return fmt.Sprintf("Default[fs=%T]", d.static)
 }

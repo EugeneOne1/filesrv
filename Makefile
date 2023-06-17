@@ -5,6 +5,7 @@ GO.MACRO = $${GO:-go}
 VERBOSE.MACRO = $${VERBOSE:-0}
 RACE = 0
 VERSION = v0.0.0
+THEME_PATH=$${THEME_PATH:-'./internal/dirs/themes'}
 
 ENV = env\
 	COMMIT='$(COMMIT)'\
@@ -12,10 +13,11 @@ ENV = env\
 	PATH="$${PWD}/bin:$$( "$(GO.MACRO)" env GOPATH )/bin:$${PATH}"\
 	RACE='$(RACE)'\
 	VERBOSE="$(VERBOSE.MACRO)"\
-	VERSION='$(VERSION)'
+	VERSION='$(VERSION)'\
+	THEME_PATH="$(THEME_PATH)"
 
 run: build
-	$(ENV) ./srv -t=./internal/dirs/themes
+	$(ENV) ./srv
 
 build: go-build
 

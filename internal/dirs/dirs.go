@@ -2,6 +2,7 @@ package dirs
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
@@ -17,7 +18,11 @@ type Theme interface {
 	// files or some dynamic content.
 	http.Handler
 
+	// TODO(e.burkov):  !! use some kind of error in [Render] instead of this.
 	IsContentRequest(r *http.Request) (ok bool)
+
+	// String returns the name of the theme.
+	fmt.Stringer
 }
 
 // dirs is a proxy for http.FileServer that handles directory listings and file

@@ -2,21 +2,16 @@ package cmd
 
 import (
 	"errors"
-	"flag"
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"strconv"
 
 	"filesrv/internal/dirs"
 	"filesrv/internal/dirs/themes"
 	"filesrv/internal/fhttp"
 )
-
-var options = struct {
-	themePath *string
-}{
-	themePath: flag.String("t", "", "path to the theme directory"),
-}
 
 // dieOnErr logs the error and exits if it is not nil.
 func dieOnErr(err error) {
@@ -26,13 +21,18 @@ func dieOnErr(err error) {
 }
 
 func Serve() {
-	// Parse options.
-	flag.Parse()
+	// Parse.
+	envs, err := parseEnvs()
+	dieOnErr(err)
 
-	theme := themes.DefaultEmbedded()
-	if p := *options.themePath; p != "" {
-		theme = themes.DefaultDynamic(p)
+	// Load.
+	var theme dirs.Theme
+	if p := envs.ThemePath; p != "" {
+		theme = themes.DefaultDynamic(os.DirFS(p))
+	} else {
+		theme = themes.DefaultEmbedded()
 	}
+	log.Printf("using theme: %s", theme)
 
 	// Configure.
 	fsys := http.Dir(".")
@@ -46,9 +46,8 @@ func Serve() {
 	h = fhttp.Wrap(h, withLog)
 
 	// Listen.
-	const port = "6060"
-
-	ln, err := net.Listen("tcp", ":"+port)
+	port := strconv.Itoa(int(envs.ListenPort))
+	ln, err := net.Listen("tcp", net.JoinHostPort(envs.ListenHost, port))
 	dieOnErr(err)
 
 	err = printListenAddrs(port)
