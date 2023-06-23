@@ -2,9 +2,11 @@ package themes
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -19,9 +21,8 @@ import (
 var static embed.FS
 
 type defaultTheme struct {
-	templ         *template.Template
-	static        fs.FS
-	staticHandler http.Handler
+	templ  *template.Template
+	static fs.FS
 }
 
 var _ dirs.Theme = (*defaultTheme)(nil)
@@ -62,7 +63,7 @@ func pathParts(p string) (current string, parts []pathPart) {
 	return current, parts
 }
 
-func (t *defaultTheme) Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) (err error) {
+func (t *defaultTheme) Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) {
 	sortBy(r.URL.Query().Get(paramSort), entries)
 
 	templData := struct {
@@ -79,12 +80,25 @@ func (t *defaultTheme) Render(w http.ResponseWriter, r *http.Request, entries []
 	templData.CurrentDir, templData.PathParts = pathParts(r.URL.Path)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err = t.templ.Lookup("dir.gohtml").Execute(w, templData)
+	err := t.templ.Lookup("dir.gohtml").Execute(w, templData)
 	if err != nil {
-		return fmt.Errorf("executing template: %w", err)
+		log.Printf("%s: executing template: %v", t, err)
+	}
+}
+
+// RenderError implements the [dirs.Theme] interface for *defaultTheme.
+func (t *defaultTheme) RenderError(w http.ResponseWriter, r *http.Request, err error) {
+	var code int
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		code = http.StatusNotFound
+	case errors.Is(err, fs.ErrPermission):
+		code = http.StatusForbidden
+	default:
+		code = http.StatusInternalServerError
 	}
 
-	return nil
+	http.Error(w, err.Error(), code)
 }
 
 var funcMap = template.FuncMap{
@@ -113,6 +127,7 @@ var funcMap = template.FuncMap{
 	},
 }
 
+// DefaultEmbedded returns a new theme based on the embedded assets.
 func DefaultEmbedded() (theme dirs.Theme) {
 	t, err := template.New(".").Funcs(funcMap).ParseFS(static, "html/dir.gohtml")
 	if err != nil {
@@ -120,21 +135,15 @@ func DefaultEmbedded() (theme dirs.Theme) {
 		panic(err)
 	}
 
-	return &defaultTheme{
-		templ:         t,
-		static:        static,
-		staticHandler: http.StripPrefix("/", http.FileServer(http.FS(static))),
-	}
+	th := DefaultDynamic(static).(*defaultDynamic).defaultTheme
+	th.templ = t
+
+	return &th
 }
 
-func (t *defaultTheme) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	t.staticHandler.ServeHTTP(w, r)
-}
-
-func (t *defaultTheme) IsContentRequest(r *http.Request) (ok bool) {
-	_, err := fs.Stat(t.static, strings.TrimPrefix(r.URL.Path, "/"))
-
-	return err == nil
+// ServeHTTP implements the [http.Handler] interface for *defaultTheme.
+func (t *defaultTheme) Open(name string) (f http.File, err error) {
+	return http.FS(t.static).Open(name)
 }
 
 // String implements the [fmt.Stringer] interface for *defaultTheme.
@@ -142,25 +151,36 @@ func (t *defaultTheme) String() string {
 	return fmt.Sprintf("Default[fs=%T]", t.static)
 }
 
+// defaultDynamic is a a wrapper around defaultTheme that parses the template on
+// each request and serves static files from provided file system.
 type defaultDynamic struct {
 	defaultTheme
 }
 
+// DefaultDynamic returns a new theme based on fsys.  It parses the template
+// from the fsys on each request.
 func DefaultDynamic(fsys fs.FS) (theme dirs.Theme) {
 	return &defaultDynamic{
 		defaultTheme: defaultTheme{
-			static:        fsys,
-			staticHandler: http.StripPrefix("/", http.FileServer(http.FS(fsys))),
+			static: fsys,
 		},
 	}
 }
 
-func (d defaultDynamic) Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) (err error) {
-	return (&defaultTheme{
-		templ:         template.Must(template.New(r.Host).Funcs(funcMap).ParseFS(d.static, "html/dir.gohtml")),
-		static:        d.static,
-		staticHandler: d.staticHandler,
+// Render implements the [dirs.Theme] interface for *defaultDynamic.
+func (d *defaultDynamic) Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) {
+	(&defaultTheme{
+		templ: template.Must(template.New(r.Host).
+			Funcs(funcMap).
+			ParseFS(d.static, "html/dir.gohtml"),
+		),
+		static: d.static,
 	}).Render(w, r, entries)
+}
+
+// RenderError implements the [dirs.Theme] interface for *defaultDynamic.
+func (d *defaultDynamic) RenderError(w http.ResponseWriter, r *http.Request, err error) {
+	d.defaultTheme.RenderError(w, r, err)
 }
 
 // String implements the [fmt.Stringer] interface for *defaultDynamic.

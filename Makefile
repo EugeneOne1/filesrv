@@ -5,7 +5,7 @@ GO.MACRO = $${GO:-go}
 VERBOSE.MACRO = $${VERBOSE:-0}
 RACE = 0
 VERSION = v0.0.0
-THEME_PATH=$${THEME_PATH:-'./internal/dirs/themes'}
+THEME_PATH=$${THEME_PATH:-./internal/dirs/themes}
 
 ENV = env\
 	COMMIT='$(COMMIT)'\

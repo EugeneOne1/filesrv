@@ -1,4 +1,4 @@
-package errors
+package ferrors
 
 // Str is a string [error].  It should usually be defined constant.
 type Str string

@@ -1,39 +1,35 @@
 package dirs
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
-	"log"
 	"net/http"
-	"strings"
 )
 
-// Theme is the interface for the directory listing themes.
+// Theme is the interface for the directory listing appearance.
 type Theme interface {
 	// Render renders the HTML page using entries and info from the request.
-	Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) (err error)
+	Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo)
 
-	// [http.Handler] is embedded here to allow a theme to serve its static
-	// files or some dynamic content.
-	http.Handler
+	// RenderNotFound renders the [http.StatusNotFound] page.  It should be
+	// ready to handle [ErrUnhandled].
+	RenderError(w http.ResponseWriter, r *http.Request, err error)
 
-	// TODO(e.burkov):  !! use some kind of error in [Render] instead of this.
-	IsContentRequest(r *http.Request) (ok bool)
+	// http.FileSystem is embedded here to allow theme serve its static content.
+	// The opened file will be trimmed of the "static" prefix.
+	http.FileSystem
 
-	// String returns the name of the theme.
+	// fmt.Stringer is embedded here to allow theme being named.
 	fmt.Stringer
 }
 
-// dirs is a proxy for http.FileServer that handles directory listings and file
-// uploads.
+// dirs is an [http.Handler] that handles directory listings and file uploads.
 type dirs struct {
-	fsys        http.FileSystem
-	httpDefault http.Handler
-
+	fsys  http.FileSystem
 	theme Theme
 }
 
+// HTTPFSConfig is the configuration for creating file listings handler.
 type HTTPFSConfig struct {
 	// FS is the http.FileSystem used to serve actual files.
 	FS http.FileSystem
@@ -42,68 +38,11 @@ type HTTPFSConfig struct {
 	Theme Theme
 }
 
+// NewHTTPFSDirs creates a new [http.Handler] that handles directory listings
+// and file uploads.
 func NewHTTPFSDirs(conf *HTTPFSConfig) (d http.Handler, err error) {
 	return &dirs{
-		fsys:        conf.FS,
-		httpDefault: http.FileServer(conf.FS),
-		theme:       conf.Theme,
+		fsys:  conf.FS,
+		theme: conf.Theme,
 	}, nil
-}
-
-// ServeHTTP implements the [http.Handler] interface for *Dirs.
-//
-// TODO(e.burkov):  Reimplement this method with at least some basic security
-// considerations in mind.
-func (h *dirs) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if h.theme.IsContentRequest(r) {
-		h.theme.ServeHTTP(w, r)
-
-		return
-	}
-
-	if !h.respond(w, r) {
-		// Handle the request with default Handler.
-		h.httpDefault.ServeHTTP(w, r)
-	}
-}
-
-// respond tries to handle the request and returns true if the request was
-// handled.  It only handles the requests for directory listings and uploading
-// the files.
-func (h *dirs) respond(w http.ResponseWriter, r *http.Request) (handled bool) {
-	if !strings.HasSuffix(r.URL.Path, "/") {
-		return false
-	}
-
-	switch r.Method {
-	case http.MethodPost:
-		if r.URL.Query().Has("upload") {
-			err := h.handleUpload(r)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-
-				return true
-			}
-
-			http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
-
-			return true
-		}
-	case http.MethodGet:
-		err := h.handleDir(w, r)
-		if err != nil {
-			if errors.Is(err, fs.ErrNotExist) {
-				return false
-			}
-
-			log.Printf("error handling directory: %v", err)
-			// http.Error(w, err.Error(), http.StatusInternalServerError)
-
-			return true
-		}
-
-		return true
-	}
-
-	return false
 }

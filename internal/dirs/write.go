@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"filesrv/internal/ferrors"
+
 	"github.com/c2h5oh/datasize"
 )
 
@@ -17,19 +19,29 @@ import (
 // now.
 const maxFileSize = int64(4 * datasize.GB)
 
+// ErrUnhandled is returned when the request is not handled by the upload
+// handler.  Any [Theme] implementation should be ready to render this error.
+const ErrUnhandled ferrors.Str = "unhandled request"
+
 // handleUpload handles the upload of a multipart file from r.  It uses the
 // URL's path as the directory for storing the file.
-func (h *dirs) handleUpload(r *http.Request) (err error) {
-	r.ParseMultipartForm(maxFileSize)
+func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dst string) (err error) {
+	if !r.URL.Query().Has("upload") {
+		return fmt.Errorf("dirs: upload: %w", ErrUnhandled)
+	}
 
-	// Get handler for filename, size and headers
+	err = r.ParseMultipartForm(maxFileSize)
+	if err != nil {
+		return fmt.Errorf("dirs: parsing multipart form: %w", err)
+	}
+
 	file, handler, err := r.FormFile("upload_file")
 	if err != nil {
 		return fmt.Errorf("dirs: retrieving file: %w", err)
 	}
 	defer file.Close()
 
-	err = saveFile(file, handler, r.URL.Path)
+	err = saveFile(file, handler, dst)
 	if err != nil {
 		return fmt.Errorf("dirs: %w", err)
 	}
@@ -41,27 +53,21 @@ func (h *dirs) handleUpload(r *http.Request) (err error) {
 	return nil
 }
 
-// filenamePattern returns a pattern for [os.CreateTemp].  It essentially places
-// the wildcard to the end of the name, but before the extension (if any).
-func filenamePattern(name string) (pattern string) {
-	ext := filepath.Ext(name)
-	if ext == "" {
-		return name + "_*"
+// saveFile saves the uploaded file to the given directory path dst.
+func saveFile(file multipart.File, handler *multipart.FileHeader, dst string) (err error) {
+	var tmpName string
+	if ext := filepath.Ext(handler.Filename); ext != "" {
+		tmpName = handler.Filename[:len(handler.Filename)-len(ext)] + "_*" + ext
+	} else {
+		tmpName = handler.Filename + "_*"
 	}
 
-	return name[:len(name)-len(filepath.Ext(name))] + "_*" + ext
-}
-
-// saveFile saves the uploaded file to the given directory path.
-func saveFile(file multipart.File, handler *multipart.FileHeader, to string) (err error) {
-	dir := filepath.Join(".", to)
-	fname := filepath.Join(dir, handler.Filename)
-
-	f, err := os.CreateTemp(dir, filenamePattern(handler.Filename))
+	dstDir := filepath.Join(".", dst)
+	f, err := os.CreateTemp(dstDir, tmpName)
 	if err != nil {
 		return err
 	}
-	defer closeAndRename(&err, f, fname)
+	defer closeAndRename(&err, f, filepath.Join(dstDir, handler.Filename))
 
 	written, err := io.Copy(f, file)
 	if err != nil {
@@ -74,9 +80,9 @@ func saveFile(file multipart.File, handler *multipart.FileHeader, to string) (er
 }
 
 // closeAndRename renames the temporary file f to the final name if the caller
-// succeeded.  Otherwise, it deletes the temporary file.  In both cases, it
-// adds the own error to the caller's error.  Note that it closes the file even
-// if the caller failed.  callerErr must not be nil (*callerErr could).
+// succeeded.  Otherwise, it deletes the temporary file.  In both cases, it adds
+// the own error to the caller's error.  Note that it closes the file even if
+// the caller failed.  callerErr must not be nil (*callerErr could).
 func closeAndRename(callerErr *error, f *os.File, finalName string) {
 	// It's required on Windows to close the file before renaming it.
 	err := f.Close()
