@@ -53,8 +53,8 @@ func (h *dirs) serveFile(w http.ResponseWriter, r *http.Request, name string) {
 		return
 	}
 
-	// redirect to canonical path: / at end of directory p
-	// r.URL.Path always begins with /
+	// Redirect to canonical path: "/" at end of directory p, [r.URL.Path]
+	// always begins with "/".
 	p := r.URL.Path
 	if d.IsDir() {
 		if !strings.HasSuffix(p, "/") {
@@ -71,17 +71,8 @@ func (h *dirs) serveFile(w http.ResponseWriter, r *http.Request, name string) {
 	}
 
 	if d.IsDir() {
-		url := r.URL.Path
-		// redirect if the directory name doesn't end in a slash
-		if url == "" || url[len(url)-1] != '/' {
-			localRedirect(w, r, path.Base(url)+"/")
-
-			return
-		}
-
-		// use contents of index.html for directory, if present
-		index := strings.TrimSuffix(name, "/") + indexPage
-		ff, err := h.fsys.Open(index)
+		// Use contents of index.html for directory, if present.
+		ff, err := h.fsys.Open(strings.TrimSuffix(name, "/") + indexPage)
 		if err == nil {
 			defer ff.Close()
 
@@ -93,14 +84,12 @@ func (h *dirs) serveFile(w http.ResponseWriter, r *http.Request, name string) {
 		}
 	}
 
-	// Still a directory, no index.html.
 	if d.IsDir() {
+		// Still a directory, no index.html.
 		h.handleDir(w, r, d)
-
-		return
+	} else {
+		http.ServeContent(w, r, d.Name(), d.ModTime(), f)
 	}
-
-	http.ServeContent(w, r, d.Name(), d.ModTime(), f)
 }
 
 // localRedirect gives an [http.StatusMovedPermanently] response.  It does not

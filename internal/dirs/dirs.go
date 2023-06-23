@@ -16,7 +16,9 @@ type Theme interface {
 	RenderError(w http.ResponseWriter, r *http.Request, err error)
 
 	// http.FileSystem is embedded here to allow theme serve its static content.
-	// The opened file will be trimmed of the "static" prefix.
+	// All the requests will be prefixed with "/static/", with a single
+	// exception of "/favicon.ico" request, which will be used as a default icon
+	// for the dir.
 	http.FileSystem
 
 	// fmt.Stringer is embedded here to allow theme being named.
