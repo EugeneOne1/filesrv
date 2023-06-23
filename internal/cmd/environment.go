@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"log"
-	"os"
-	"strings"
-
+	"github.com/c2h5oh/datasize"
 	"github.com/caarlos0/env/v8"
 )
 
@@ -18,19 +15,12 @@ type environments struct {
 
 	// listenPort is the port to listen on.
 	ListenPort uint16 `env:"PORT" envDefault:"6060"`
+
+	// MaxUploadSize is the maximum size of a file that can be uploaded.  It's
+	// 4GB by default.
+	MaxUploadSize datasize.ByteSize `env:"MAX_UPLOAD_SIZE" envDefault:"4GB"`
 }
 
 func parseEnvs() (envs environments, err error) {
-	for _, e := range os.Environ() {
-		switch firstEqual := strings.IndexByte(e, '='); e[:firstEqual] {
-		case "THEME_PATH", "HOST", "PORT":
-			log.Printf("env %q is set to %q", e[:firstEqual], e[firstEqual+1:])
-		default:
-			continue
-		}
-	}
-
-	err = env.Parse(&envs)
-
-	return envs, err
+	return envs, env.Parse(&envs)
 }

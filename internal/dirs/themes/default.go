@@ -88,17 +88,34 @@ func (t *defaultTheme) Render(w http.ResponseWriter, r *http.Request, entries []
 
 // RenderError implements the [dirs.Theme] interface for *defaultTheme.
 func (t *defaultTheme) RenderError(w http.ResponseWriter, r *http.Request, err error) {
-	var code int
+	templData := struct {
+		Title      string
+		Message    string
+		Favicon    string
+		StatusCode int
+	}{}
+
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		code = http.StatusNotFound
+		templData.Message = "Requested resource isn't found."
+		templData.Favicon = "🌚"
+		templData.StatusCode = http.StatusNotFound
 	case errors.Is(err, fs.ErrPermission):
-		code = http.StatusForbidden
+		templData.Message = "You do not have permission to access the requested resource."
+		templData.Favicon = "🔒"
+		templData.StatusCode = http.StatusForbidden
 	default:
-		code = http.StatusInternalServerError
+		templData.Message = fmt.Sprintf("Something went wrong: %v.", err)
+		templData.Favicon = "❌"
+		templData.StatusCode = http.StatusInternalServerError
 	}
+	templData.Title = http.StatusText(templData.StatusCode)
 
-	http.Error(w, err.Error(), code)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	err = t.templ.Lookup("err.gohtml").Execute(w, templData)
+	if err != nil {
+		log.Printf("%s: executing template: %v", t, err)
+	}
 }
 
 var funcMap = template.FuncMap{
@@ -129,7 +146,7 @@ var funcMap = template.FuncMap{
 
 // DefaultEmbedded returns a new theme based on the embedded assets.
 func DefaultEmbedded() (theme dirs.Theme) {
-	t, err := template.New(".").Funcs(funcMap).ParseFS(static, "html/dir.gohtml")
+	t, err := template.New(".").Funcs(funcMap).ParseFS(static, "html/dir.gohtml", "html/err.gohtml")
 	if err != nil {
 		// This should never happen since the whole content is embedded.
 		panic(err)
@@ -180,7 +197,13 @@ func (d *defaultDynamic) Render(w http.ResponseWriter, r *http.Request, entries 
 
 // RenderError implements the [dirs.Theme] interface for *defaultDynamic.
 func (d *defaultDynamic) RenderError(w http.ResponseWriter, r *http.Request, err error) {
-	d.defaultTheme.RenderError(w, r, err)
+	(&defaultTheme{
+		templ: template.Must(template.New(r.Host).
+			Funcs(funcMap).
+			ParseFS(d.static, "html/err.gohtml"),
+		),
+		static: d.static,
+	}).RenderError(w, r, err)
 }
 
 // String implements the [fmt.Stringer] interface for *defaultDynamic.

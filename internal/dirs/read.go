@@ -64,11 +64,9 @@ func (h *dirs) handleDir(w http.ResponseWriter, r *http.Request, d fs.FileInfo) 
 	entries, err := h.read(r.URL.Path)
 	if err != nil {
 		h.theme.RenderError(w, r, fmt.Errorf("reading directory: %w", err))
-
-		return
+	} else {
+		h.theme.Render(w, r, entries)
 	}
-
-	h.theme.Render(w, r, entries)
 }
 
 // writeUnmodified writes a [http.StatusNotModified] response.

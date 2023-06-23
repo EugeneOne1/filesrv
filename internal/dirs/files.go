@@ -62,15 +62,7 @@ func (h *dirs) serveFile(w http.ResponseWriter, r *http.Request, name string) {
 
 			return
 		}
-	} else {
-		if strings.HasSuffix(p, "/") {
-			localRedirect(w, r, "../"+path.Base(p))
 
-			return
-		}
-	}
-
-	if d.IsDir() {
 		// Use contents of index.html for directory, if present.
 		ff, err := h.fsys.Open(strings.TrimSuffix(name, "/") + indexPage)
 		if err == nil {
@@ -82,6 +74,10 @@ func (h *dirs) serveFile(w http.ResponseWriter, r *http.Request, name string) {
 				f = ff
 			}
 		}
+	} else if strings.HasSuffix(p, "/") {
+		localRedirect(w, r, "../"+path.Base(p))
+
+		return
 	}
 
 	if d.IsDir() {

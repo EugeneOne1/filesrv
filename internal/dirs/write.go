@@ -11,16 +11,10 @@ import (
 	"path/filepath"
 
 	"filesrv/internal/ferrors"
-
-	"github.com/c2h5oh/datasize"
 )
 
-// maxFileSize is the maximum size of a file that can be uploaded.  It's 4GB for
-// now.
-const maxFileSize = int64(4 * datasize.GB)
-
 // ErrUnhandled is returned when the request is not handled by the upload
-// handler.  Any [Theme] implementation should be ready to render this error.
+// handler.
 const ErrUnhandled ferrors.Str = "unhandled request"
 
 // handleUpload handles the upload of a multipart file from r.  It uses the
@@ -30,7 +24,7 @@ func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dst string) 
 		return fmt.Errorf("dirs: upload: %w", ErrUnhandled)
 	}
 
-	err = r.ParseMultipartForm(maxFileSize)
+	err = r.ParseMultipartForm(h.maxUploadSize)
 	if err != nil {
 		return fmt.Errorf("dirs: parsing multipart form: %w", err)
 	}
