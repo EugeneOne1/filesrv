@@ -102,3 +102,8 @@ tr {
 a {
     text-decoration: none;
 }
+
+table tbody tr.last-row td {
+    height: calc(100vh - 6rem);
+    height: -moz-calc(100vh - 6rem);
+}

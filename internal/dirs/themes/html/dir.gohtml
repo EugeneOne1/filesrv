@@ -6,6 +6,7 @@
 
     <link href="/css/doc.css" rel="stylesheet">
     <link href="/css/files.css" rel="stylesheet">
+    <link href="/css/upload.css" rel="stylesheet">
     <link href="/css/info.css" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📁</text></svg>">
 
@@ -33,28 +34,9 @@
                         <th title="{{$ent.Name}}">
                             <a class="file dir" href="{{$ent.Name}}/">
                                 <span class="filename">📁&nbsp{{$ent.Name}}</span>
-<<<<<<< HEAD
                             </a>
-=======
-                            </a>{{else}}
-                            <a class="file" href="{{$ent.Name}}">
-                                <span class="filename">📄&nbsp{{$ent.Name}}</span>
-                            </a>{{end}}
->>>>>>> dd11b73 (WIP)
                         </th>
-                    </tr>{{end}}
-                    <tr>
-                        <th title="Upload">
-                            <label for="upload-dialog-toggle" id="file-upload" class="file">➕&nbspUpload</label>
-                            <input type="checkbox" id="upload-dialog-toggle">
-                            <dialog id="upload-dialog">
-                                <label class="shield" for="dialog"></label>
-                                <form id="file-upload" enctype="multipart/form-data" method="dialog">
-                                    <input id="upload_submit" type="submit" value="Upload" />
-                                </form>
-                            </dialog>
-                        </th>
-                    </tr>{{range $ent := .Files}}
+                    </tr>{{end}}{{range $ent := .Files}}
                     <tr>
                         <th title="{{$ent.Name}}">
                             <a class="file" href="{{$ent.Name}}">
@@ -62,6 +44,7 @@
                             </a>
                         </th>
                     </tr>{{end}}
+                    <tr class="last-row"><td>&nbsp</td></tr>
                 </tbody>
             </table>
 
@@ -94,15 +77,24 @@
                         <td></td>
                         <td>{{formatTime $ent.ModTime}}</td>
                         <td>{{formatMode $ent.Mode}}</td>
-                    </tr>{{end}}
-                    <tr></tr>{{range $ent := .Files}}
+                    </tr>{{end}}{{range $ent := .Files}}
                     <tr>
                         <td>{{formatSize $ent.Size}}</td>
                         <td>{{formatTime $ent.ModTime}}</td>
                         <td>{{formatMode $ent.Mode}}</td>
                     </tr>{{end}}
+                    <tr class="last-row"><td>&nbsp</td></tr>
                 </tbody>
             </table>
+        </div>
+        <label for="toggle-modal" class="btn-modal_open">📝&nbspUpload</label>
+        <div class="modalCheckbox">
+            <input type="checkbox" id="toggle-modal">
+            <label for="toggle-modal" class="modal-overlay"></label>
+            <div class="modal-dialog">
+                <p>Modal Checkbox</p>
+                <label for="toggle-modal" class="btn-modal_close">Cancel</label>
+            </div>
         </div>
     </body>
 </html>

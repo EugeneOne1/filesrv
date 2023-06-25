@@ -20,7 +20,7 @@ table.files thead {
     top: 0;
     left: 0;
     z-index: 1;
-    
+
     width: 100%;
 
     color: rgba(255, 255, 255, 1);
@@ -46,8 +46,6 @@ table.files thead tr th a {
 
     padding-top: .5rem;
     padding-bottom: .5rem;
-
-    /* min-width: 1rem; */
 
     color: rgba(255, 255, 255, .7);
 }
@@ -113,57 +111,3 @@ table.files tbody th .dir {
 table.files tbody th:hover .dir {
     background-color: rgba(0, 34, 255, .15);
 }
-
-table.files tbody th label#file-upload {
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-}
-
-table.files tbody th form input {
-    appearance: none;
-    -webkit-appearance: none;
-}
-
-table.files tbody th input[type=checkbox] {
-    display: none;
-}
-
-table.files tbody th input[type=checkbox]:checked + dialog {
-    opacity: 1;
-}
-
-
-
-
-
-/* table.files tbody th form#file-upload #upload_submit {
-    padding: .5rem;
-    width: 50%;
-
-    border: 0;
-    border-radius: 0;
-    cursor: pointer;
-
-    background-color: rgba(0, 34, 255, .2);
-}
-
-table.files tbody th form#file-upload #upload_submit:hover {
-    padding: .5rem;
-    width: 50%;
-
-    border: 0;
-    cursor: pointer;
-
-    background-color: rgba(0, 34, 255, .05);
-}
-
-table.files tbody th form#file-upload #custom-uploader {
-    cursor: pointer;
-
-    min-width: 50%;
-}
-
-table.files tbody th form#file-upload #custom-uploader #uploader::file-selector-button {
-    display: none;
-} */
