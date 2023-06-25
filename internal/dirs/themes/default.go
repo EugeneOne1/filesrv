@@ -126,17 +126,15 @@ var funcMap = template.FuncMap{
 		return datasize.ByteSize(size).HumanReadable()
 	},
 	"formatMode": func(fm fs.FileMode) (res string, err error) {
-		buf := [12]byte{}
-		bi := 0
+		buf := make([]byte, 0, 11)
 		for i, c := range "rwxrwxrwx" {
 			if fm&(1<<uint(9-1-i)) != 0 {
-				buf[bi] = byte(c)
+				buf = append(buf, byte(c))
 			} else {
-				buf[bi] = '-'
+				buf = append(buf, '-')
 			}
-			if bi++; bi%3 == 0 && bi < len(buf) {
-				buf[bi] = '\n'
-				bi++
+			if (i+1)%3 == 0 && i != 8 {
+				buf = append(buf, '\n')
 			}
 		}
 
