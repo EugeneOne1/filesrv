@@ -33,17 +33,26 @@
                         <th title="{{$ent.Name}}">
                             <a class="file dir" href="{{$ent.Name}}/">
                                 <span class="filename">📁&nbsp{{$ent.Name}}</span>
+<<<<<<< HEAD
                             </a>
+=======
+                            </a>{{else}}
+                            <a class="file" href="{{$ent.Name}}">
+                                <span class="filename">📄&nbsp{{$ent.Name}}</span>
+                            </a>{{end}}
+>>>>>>> dd11b73 (WIP)
                         </th>
                     </tr>{{end}}
                     <tr>
                         <th title="Upload">
-                            <form id="file-upload" enctype="multipart/form-data" action="{{.Path}}?upload" method="post">
-                                <label id="custom-uploader" class="file" for="uploader">
-                                    ➕&nbsp<input id="uploader" type="file" name="upload_file" required />
-                                </label>
-                                <input id="upload_submit" type="submit" value="Upload" />
-                            </form>
+                            <label for="upload-dialog-toggle" id="file-upload" class="file">➕&nbspUpload</label>
+                            <input type="checkbox" id="upload-dialog-toggle">
+                            <dialog id="upload-dialog">
+                                <label class="shield" for="dialog"></label>
+                                <form id="file-upload" enctype="multipart/form-data" method="dialog">
+                                    <input id="upload_submit" type="submit" value="Upload" />
+                                </form>
+                            </dialog>
                         </th>
                     </tr>{{range $ent := .Files}}
                     <tr>
