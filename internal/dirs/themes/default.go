@@ -64,19 +64,18 @@ func pathParts(p string) (current string, parts []pathPart) {
 }
 
 func (t *defaultTheme) Render(w http.ResponseWriter, r *http.Request, entries []fs.FileInfo) {
-	sortBy(r.URL.Query().Get(paramSort), entries)
-
 	templData := struct {
 		CurrentDir string
 		PathParts  []pathPart
 		Path       string
 		Params     url.Values
-		Entries    []fs.FileInfo
+		Dirs       []fs.FileInfo
+		Files      []fs.FileInfo
 	}{
-		Path:    r.URL.Path,
-		Params:  r.URL.Query(),
-		Entries: entries,
+		Path:   r.URL.Path,
+		Params: r.URL.Query(),
 	}
+	templData.Dirs, templData.Files = sortBy(r.URL.Query().Get(paramSort), entries)
 	templData.CurrentDir, templData.PathParts = pathParts(r.URL.Path)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

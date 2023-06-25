@@ -29,15 +29,23 @@ const (
 	sortTimeDesc = "time_desc"
 )
 
-func sortBy(param string, entries []fs.FileInfo) {
+func sortBy(param string, entries []fs.FileInfo) (dirs, files []fs.FileInfo) {
 	var less func(i, j fs.FileInfo) bool
 	switch param {
 	case sortSize:
 		less = func(i, j fs.FileInfo) bool {
+			if i.IsDir() {
+				return i.Name() < j.Name()
+			}
+
 			return i.Size() < j.Size()
 		}
 	case sortSizeDesc:
 		less = func(i, j fs.FileInfo) bool {
+			if i.IsDir() {
+				return i.Name() < j.Name()
+			}
+
 			return i.Size() > j.Size()
 		}
 	case sortTime:
@@ -55,6 +63,10 @@ func sortBy(param string, entries []fs.FileInfo) {
 	}
 
 	sortDirsFirst(less, entries)
+
+	di := slices.IndexFunc(entries, func(fi fs.FileInfo) bool { return !fi.IsDir() })
+
+	return entries[:di], entries[di:]
 }
 
 const (

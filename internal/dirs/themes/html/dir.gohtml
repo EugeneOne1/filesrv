@@ -28,15 +28,12 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody>{{range $ent := .Entries}}
+                <tbody>{{range $ent := .Dirs}}
                     <tr>
-                        <th title="{{$ent.Name}}">{{if $ent.IsDir}}
+                        <th title="{{$ent.Name}}">
                             <a class="file dir" href="{{$ent.Name}}/">
-                                <span class="filename">📁 {{$ent.Name}}</span>
-                            </a>{{else}}
-                            <a class="file" href="{{$ent.Name}}">
-                                <span class="filename">📄 {{$ent.Name}}</span>
-                            </a>{{end}}
+                                <span class="filename">📁&nbsp{{$ent.Name}}</span>
+                            </a>
                         </th>
                     </tr>{{end}}
                     <tr>
@@ -48,7 +45,14 @@
                                 <input id="upload_submit" type="submit" value="Upload" />
                             </form>
                         </th>
-                    </tr>
+                    </tr>{{range $ent := .Files}}
+                    <tr>
+                        <th title="{{$ent.Name}}">
+                            <a class="file" href="{{$ent.Name}}">
+                                <span class="filename">📄&nbsp{{$ent.Name}}</span>
+                            </a>
+                        </th>
+                    </tr>{{end}}
                 </tbody>
             </table>
 
@@ -76,9 +80,15 @@
                         <th>Permissions</th>
                     </tr>
                 </thead>
-                <tbody>{{range $ent := .Entries}}
+                <tbody>{{range $ent := .Dirs}}
                     <tr>
-                        <td>{{if not $ent.IsDir}}{{formatSize $ent.Size}}{{end}}</td>
+                        <td></td>
+                        <td>{{formatTime $ent.ModTime}}</td>
+                        <td>{{formatMode $ent.Mode}}</td>
+                    </tr>{{end}}
+                    <tr></tr>{{range $ent := .Files}}
+                    <tr>
+                        <td>{{formatSize $ent.Size}}</td>
                         <td>{{formatTime $ent.ModTime}}</td>
                         <td>{{formatMode $ent.Mode}}</td>
                     </tr>{{end}}
