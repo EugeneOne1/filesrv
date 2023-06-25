@@ -4,35 +4,13 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"path"
+	"strings"
 	"time"
 )
 
-// read reads the directory named by path and returns a list of directory
-// entries.
-func (h *dirs) read(path string) (entries []fs.FileInfo, err error) {
-	f, err := h.fsys.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	fi, err := f.Stat()
-	if err != nil {
-		return nil, err
-	} else if !fi.IsDir() {
-		return nil, fs.ErrNotExist
-	}
-
-	entries, err = f.Readdir(-1)
-	if err != nil {
-		return nil, err
-	}
-
-	return entries, nil
-}
-
 // handleDir reads the directory and marshals the entries via the template.
-func (h *dirs) handleDir(w http.ResponseWriter, r *http.Request, d fs.FileInfo) {
+func (h *dirs) handleDir(w http.ResponseWriter, r *http.Request, f http.File, d fs.FileInfo) {
 	mtime := d.ModTime()
 
 	switch r.Method {
@@ -61,12 +39,62 @@ func (h *dirs) handleDir(w http.ResponseWriter, r *http.Request, d fs.FileInfo) 
 		w.Header().Set("Last-Modified", mtime.UTC().Format(http.TimeFormat))
 	}
 
-	entries, err := h.read(r.URL.Path)
+	entries, err := h.readdir(r, f)
 	if err != nil {
 		h.theme.RenderError(w, r, fmt.Errorf("reading directory: %w", err))
-	} else {
-		h.theme.Render(w, r, entries)
+
+		return
 	}
+
+	h.theme.Render(w, r, entries)
+}
+
+type doubleDot struct {
+	size    int64
+	mode    fs.FileMode
+	modTime time.Time
+}
+
+func (c *doubleDot) Name() string       { return ".." }
+func (c *doubleDot) Size() int64        { return c.size }
+func (c *doubleDot) Mode() fs.FileMode  { return c.mode }
+func (c *doubleDot) ModTime() time.Time { return c.modTime }
+func (c *doubleDot) IsDir() bool        { return true }
+func (c *doubleDot) Sys() any           { return nil }
+
+func (h *dirs) readdir(r *http.Request, f http.File) (entries []fs.FileInfo, err error) {
+	entries, err = f.Readdir(-1)
+	if err != nil {
+		return nil, fmt.Errorf("reading directory: %w", err)
+	}
+
+	if parentPath := path.Dir(strings.TrimRight(r.URL.Path, "/")); parentPath != "." {
+		var parent http.File
+		parent, err = h.fsys.Open(parentPath)
+		if err != nil {
+			return nil, fmt.Errorf("opening parent directory: %w", err)
+		}
+		defer func() {
+			err = parent.Close()
+			if err != nil {
+				err = fmt.Errorf("closing parent directory: %w", err)
+			}
+		}()
+
+		var parentInfo fs.FileInfo
+		parentInfo, err = parent.Stat()
+		if err != nil {
+			return nil, fmt.Errorf("stat parent directory: %w", err)
+		}
+
+		entries = append([]fs.FileInfo{&doubleDot{
+			mode:    parentInfo.Mode(),
+			modTime: parentInfo.ModTime(),
+			size:    parentInfo.Size(),
+		}}, entries...)
+	}
+
+	return entries, nil
 }
 
 // writeUnmodified writes a [http.StatusNotModified] response.

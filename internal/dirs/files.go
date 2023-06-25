@@ -70,8 +70,7 @@ func (h *dirs) serveFile(w http.ResponseWriter, r *http.Request, name string) {
 
 			dd, err := ff.Stat()
 			if err == nil {
-				d = dd
-				f = ff
+				f, d = ff, dd
 			}
 		}
 	} else if strings.HasSuffix(p, "/") {
@@ -82,7 +81,7 @@ func (h *dirs) serveFile(w http.ResponseWriter, r *http.Request, name string) {
 
 	if d.IsDir() {
 		// Still a directory, no index.html.
-		h.handleDir(w, r, d)
+		h.handleDir(w, r, f, d)
 	} else {
 		http.ServeContent(w, r, d.Name(), d.ModTime(), f)
 	}

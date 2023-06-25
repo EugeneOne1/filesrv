@@ -65,8 +65,11 @@ func sortBy(param string, entries []fs.FileInfo) (dirs, files []fs.FileInfo) {
 	sortDirsFirst(less, entries)
 
 	di := slices.IndexFunc(entries, func(fi fs.FileInfo) bool { return !fi.IsDir() })
+	if di != -1 {
+		return entries[:di], entries[di:]
+	}
 
-	return entries[:di], entries[di:]
+	return entries, nil
 }
 
 const (

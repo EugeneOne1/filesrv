@@ -35,6 +35,7 @@ func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dst string) 
 	}
 	defer file.Close()
 
+	log.Printf("saving file to %q", dst)
 	err = saveFile(file, handler, dst)
 	if err != nil {
 		return fmt.Errorf("dirs: %w", err)
