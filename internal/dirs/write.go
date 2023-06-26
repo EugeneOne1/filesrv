@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"filesrv/internal/ferrors"
 )
@@ -17,9 +18,13 @@ import (
 // handler.
 const ErrUnhandled ferrors.Str = "unhandled request"
 
+type urlKey = string
+
+const ukFiles urlKey = "files"
+
 // handleUpload handles the upload of a multipart file from r.  It uses the
 // URL's path as the directory for storing the file.
-func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dst string) (err error) {
+func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dstDir string) (err error) {
 	if !r.URL.Query().Has("upload") {
 		return fmt.Errorf("dirs: upload: %w", ErrUnhandled)
 	}
@@ -29,18 +34,32 @@ func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dst string) 
 		return fmt.Errorf("dirs: parsing multipart form: %w", err)
 	}
 
-	file, handler, err := r.FormFile("upload_file")
-	if err != nil {
-		return fmt.Errorf("dirs: retrieving file: %w", err)
+	files, ok := r.MultipartForm.File[ukFiles]
+	if !ok {
+		return fmt.Errorf("dirs: no files to upload: %w", ErrUnhandled)
 	}
-	defer file.Close()
 
-	log.Printf("saving file to %q", dst)
-	err = saveFile(file, handler, dst)
+	wg := &sync.WaitGroup{}
+	wg.Add(len(files))
+
+	for _, handler := range files {
+		go handleFile(wg, handler, dstDir)
+	}
+	wg.Wait()
+
+	return nil
+}
+
+func handleFile(wg *sync.WaitGroup, handler *multipart.FileHeader, dstDir string) (err error) {
+	defer wg.Done()
+
+	log.Printf("saving file to %q", dstDir)
+	err = saveFile(handler, dstDir)
 	if err != nil {
 		return fmt.Errorf("dirs: %w", err)
 	}
 
+	// TODO(e.burkov):  Think of reasonability.
 	log.Printf("Uploaded File: %q", handler.Filename)
 	log.Printf("File Size:     %d", handler.Size)
 	log.Printf("MIME Header:   %s", handler.Header)
@@ -49,12 +68,18 @@ func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dst string) 
 }
 
 // saveFile saves the uploaded file to the given directory path dst.
-func saveFile(file multipart.File, handler *multipart.FileHeader, dst string) (err error) {
+func saveFile(handler *multipart.FileHeader, dst string) (err error) {
 	var tmpName string
 	if ext := filepath.Ext(handler.Filename); ext != "" {
 		tmpName = handler.Filename[:len(handler.Filename)-len(ext)] + "_*" + ext
 	} else {
 		tmpName = handler.Filename + "_*"
+	}
+
+	var file multipart.File
+	file, err = handler.Open()
+	if err != nil {
+		return fmt.Errorf("opening file: %w", err)
 	}
 
 	dstDir := filepath.Join(".", dst)

@@ -1,4 +1,4 @@
-.btn-modal_open {
+#upload-open {
     z-index: 1;
     position: fixed;
     width: fit-content;
@@ -15,41 +15,39 @@
     backdrop-filter: blur(10px);
 }
 
-.btn-modal_open:hover,
-.btn-modal_open:focus {
+#upload-open:hover,
+#upload-open:focus {
     background: rgba(0, 34, 255, .2);
     cursor: pointer;
 }
 
-.btn-modal_open:active {
+#upload-open:active {
     background: #0091cb;
 }
 
-.btn-modal_close {
+#upload-close {
     display: inline-block;
     float: right;
     margin: 0 10px 0 0;
     padding: 6px 9px;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
+
     background: #fc5e71;
     text-align: center;
     color: #fff;
     font-weight: bold;
 }
 
-.btn-modal_close:hover,
-.btn-modal_close:focus {
+#upload-close:hover,
+#upload-close:focus {
     background: #fc7787;
     cursor: pointer;
 }
 
-.btn-modal_close:active {
+#upload-close:active {
     background: #fc455b;
 }
 
-.modalCheckbox .modal-overlay {
+#upload-modal .overlay {
     display: none;
     background: rgba(0, 34, 255, .1);
     position: fixed;
@@ -57,11 +55,11 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 2;
     backdrop-filter: blur(10px);
 }
 
-.modalCheckbox .modal-dialog {
+#upload-modal #upload-dialog {
     position: absolute;
     top: -100%;
     left: 50%;
@@ -71,25 +69,24 @@
     -ms-transform: translateX(-50%);
     -o-transform: translateX(-50%);
     transform: translateX(-50%);
-    z-index: 1100;
-    border-radius: 4px;
+    z-index: 3;
     background: #fff;
 }
 
-.modalCheckbox .modal-dialog {
+#upload-modal #upload-dialog {
     padding: .5rem;
 }
 
-.modalCheckbox input[type=checkbox] {
+#upload-modal input[type=checkbox] {
     position: absolute;
     opacity: 0;
 }
 
-.modalCheckbox input[type=checkbox]:checked~.modal-overlay {
+#upload-modal input[type=checkbox]:checked~.overlay {
     display: block;
 }
 
-.modalCheckbox input[type=checkbox]:checked~.modal-dialog {
+#upload-modal input[type=checkbox]:checked~#upload-dialog {
     -webkit-transition: 0.5s;
     -moz-transition: 0.5s;
     -ms-transition: 0.5s;

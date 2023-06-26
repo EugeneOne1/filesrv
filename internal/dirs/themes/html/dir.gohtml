@@ -87,14 +87,15 @@
                 </tbody>
             </table>
         </div>
-        <label for="toggle-modal" class="btn-modal_open">📝&nbspUpload</label>
-        <div class="modalCheckbox">
-            <input type="checkbox" id="toggle-modal">
-            <label for="toggle-modal" class="modal-overlay"></label>
-            <div class="modal-dialog">
-                <p>Modal Checkbox</p>
-                <label for="toggle-modal" class="btn-modal_close">Cancel</label>
-            </div>
+        <label for="toggle-upload-modal" id="upload-open">📝&nbspUpload here</label>
+        <div id="upload-modal">
+            <input type="checkbox" id="toggle-upload-modal">
+            <label class="overlay" for="toggle-upload-modal"></label>
+            <form id="upload-dialog" enctype="multipart/form-data" action="{{.Path}}?upload" method="post">
+                <input id="upload-picker" type="file" name="files" multiple required />
+                <input id="upload-submit" type="submit" value="Upload" />
+                <label id="upload-close" for="toggle-upload-modal">Cancel</label>
+            </form>
         </div>
     </body>
 </html>
