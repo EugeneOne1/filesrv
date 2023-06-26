@@ -92,9 +92,12 @@
             <input type="checkbox" id="toggle-upload-modal">
             <label class="overlay" for="toggle-upload-modal"></label>
             <form id="upload-dialog" enctype="multipart/form-data" action="{{.Path}}?upload" method="post">
-                <input id="upload-picker" type="file" name="files" multiple required />
-                <input id="upload-submit" type="submit" value="Upload" />
-                <label id="upload-close" for="toggle-upload-modal">Cancel</label>
+                {{/* TODO(e.burkov):  !! add
+                <label id="upload-drop" for="files">Drop files here or...</label> */}}
+                <div id="upload-picker">
+                    <input type="file" name="files" multiple required />
+                </div>
+                <input id="upload-submit" type="submit" value="✏️ Upload" />
             </form>
         </div>
     </body>

@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"sync"
 
@@ -53,7 +54,6 @@ func (h *dirs) handleUpload(w http.ResponseWriter, r *http.Request, dstDir strin
 func handleFile(wg *sync.WaitGroup, handler *multipart.FileHeader, dstDir string) (err error) {
 	defer wg.Done()
 
-	log.Printf("saving file to %q", dstDir)
 	err = saveFile(handler, dstDir)
 	if err != nil {
 		return fmt.Errorf("dirs: %w", err)
@@ -69,6 +69,8 @@ func handleFile(wg *sync.WaitGroup, handler *multipart.FileHeader, dstDir string
 
 // saveFile saves the uploaded file to the given directory path dst.
 func saveFile(handler *multipart.FileHeader, dst string) (err error) {
+	defer log.Printf("saving file to %q", path.Join(dst, handler.Filename))
+
 	var tmpName string
 	if ext := filepath.Ext(handler.Filename); ext != "" {
 		tmpName = handler.Filename[:len(handler.Filename)-len(ext)] + "_*" + ext

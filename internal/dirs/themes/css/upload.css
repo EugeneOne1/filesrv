@@ -1,6 +1,6 @@
 #upload-open {
     z-index: 1;
-    position: fixed;
+    position: absolute;
     width: fit-content;
     right: 3rem;
     bottom: 2rem;
@@ -14,42 +14,43 @@
     font-weight: bold;
     backdrop-filter: blur(10px);
 }
-
 #upload-open:hover,
 #upload-open:focus {
-    background: rgba(0, 34, 255, .2);
+    background: rgba(0, 34, 255, .05);
     cursor: pointer;
 }
-
 #upload-open:active {
-    background: #0091cb;
+    background: rgba(0, 34, 255, 0.03);
 }
 
-#upload-close {
-    display: inline-block;
-    float: right;
-    margin: 0 10px 0 0;
-    padding: 6px 9px;
+#upload-submit {
+    display: block;
+    width: 100%;
+    padding: 1.5rem;
 
-    background: #fc5e71;
+    border: 0;
+    border-radius: 0;
+
+    background: rgba(0, 34, 255, .1);
     text-align: center;
-    color: #fff;
+    color: #000;
     font-weight: bold;
 }
-
-#upload-close:hover,
-#upload-close:focus {
-    background: #fc7787;
+#upload-modal input[type=checkbox]:checked~.overlay {
+    display: block;
+}
+#upload-submit:hover,
+#upload-submit:focus {
+    background: rgba(0, 34, 255, .05);
     cursor: pointer;
 }
-
-#upload-close:active {
-    background: #fc455b;
+#upload-submit:active {
+    background: rgba(0, 34, 255, 0.03);
 }
 
 #upload-modal .overlay {
     display: none;
-    background: rgba(0, 34, 255, .1);
+    background: rgba(255,255,255, .2);
     position: fixed;
     top: 0;
     bottom: 0;
@@ -58,40 +59,45 @@
     z-index: 2;
     backdrop-filter: blur(10px);
 }
+#upload-modal input[type=checkbox]:checked~.overlay {
+    display: block;
+}
 
-#upload-modal #upload-dialog {
-    position: absolute;
-    top: -100%;
-    left: 50%;
-    width: 300px;
-    -webkit-transform: translateX(-50%);
-    -moz-transform: translateX(-50%);
-    -ms-transform: translateX(-50%);
-    -o-transform: translateX(-50%);
-    transform: translateX(-50%);
-    z-index: 3;
-    background: #fff;
+#upload-modal #upload-picker input[type=file]::file-selector-button {
+    display: inline-block;
+
+    font-family: firacode;
+    border: 0;
+    border-radius: 0;
+    padding: 1.5rem;
+
+    background: rgba(0, 34, 255, .1);
+}
+#upload-modal #upload-picker input[type=file]::file-selector-button:hover,
+#upload-modal #upload-picker input[type=file]::file-selector-button:focus {
+    background: rgba(0, 34, 255, .05);
+    cursor: pointer;
+}
+#upload-modal #upload-picker input[type=file]::file-selector-button:active {
+    background: rgba(0, 34, 255, 0.03);
 }
 
 #upload-modal #upload-dialog {
-    padding: .5rem;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: -100%;
+    left: 50%;
+    width: fit-content;
+    z-index: 3;
+    backdrop-filter: blur(10px);
+}
+#upload-modal input[type=checkbox]:checked~#upload-dialog {
+    top: 20%;
+    transform: translate(-50%);
 }
 
 #upload-modal input[type=checkbox] {
     position: absolute;
     opacity: 0;
-}
-
-#upload-modal input[type=checkbox]:checked~.overlay {
-    display: block;
-}
-
-#upload-modal input[type=checkbox]:checked~#upload-dialog {
-    -webkit-transition: 0.5s;
-    -moz-transition: 0.5s;
-    -ms-transition: 0.5s;
-    -o-transition: 0.5s;
-    transition: 0.5s;
-    top: 20%;
-    transform: translate(-50%);
 }
